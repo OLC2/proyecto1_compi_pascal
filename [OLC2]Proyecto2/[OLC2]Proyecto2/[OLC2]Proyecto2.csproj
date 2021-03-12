@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>_OLC2_Proyecto2</RootNamespace>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="jacobslusser.ScintillaNET" Version="3.6.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Irony">
+      <HintPath>..\..\..\..\..\..\compiladores2\Irony.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
