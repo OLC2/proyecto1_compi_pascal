@@ -23,8 +23,10 @@ namespace _OLC2_Proyecto2.Arbol
         private ParseTreeNode NodoBegin;
 
         private Boolean activo; //Esto me ayuda para hacer la busqueda de variables globales
+        private Boolean isRetorno;
+        private string tipoDatoRetorno;
 
-        public List<Error> lstError = new List<Error>();
+        public static List<Error> lstError = new List<Error>();
 
         public Entorno(ParseTreeNode nodo, string ambitoPadre)
         {
@@ -34,8 +36,13 @@ namespace _OLC2_Proyecto2.Arbol
             this.ambitoPadre = ambitoPadre;
             this.NodoBegin = null;
             this.activo = false;
+            this.IsRetorno = false;
         }
 
+        public List<Error> getErroresSemanticos()
+        {
+            return lstError;
+        }
         public string Ambito
         {
             get => ambito;
@@ -46,6 +53,18 @@ namespace _OLC2_Proyecto2.Arbol
         {
             get => ambitoPadre;
             set => ambitoPadre = value;
+        }
+
+        public Boolean IsRetorno
+        {
+            get => isRetorno;
+            set => isRetorno = value;
+        }
+
+        public string TipoDatoRetorno
+        {
+            get => tipoDatoRetorno;
+            set => tipoDatoRetorno = value;
         }
 
         public ParseTreeNode nodoBegin
@@ -83,19 +102,24 @@ namespace _OLC2_Proyecto2.Arbol
                     switch (Nodo.ChildNodes.Count)
                     {
                         case 13: //ToTerm("function") + id + parentA + PARAMETROS + parentC + dospuntos + TIPODATO + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
-                            Debug.WriteLine("================================================================================");
-                            Debug.WriteLine("Creo entorno(" + Nodo.Term.Name + "): " + Nodo.ChildNodes[1].Token.Text);
-                            Debug.WriteLine("================================================================================");
+                            //Debug.WriteLine("================================================================================");
+                            //Debug.WriteLine("Creo entorno(" + Nodo.Term.Name + "): " + Nodo.ChildNodes[1].Token.Text);
+                            //Debug.WriteLine("================================================================================");
                             this.ambito = Nodo.ChildNodes[1].Token.Text;
                             this.NodoBegin = Nodo.ChildNodes[10];
+                            this.IsRetorno = true;
+                            this.tipoDatoRetorno = getTipoDatoFunction(Nodo.ChildNodes[6]);
+                            CrearParametros(Nodo.ChildNodes[3]);
                             Estructura(Nodo.ChildNodes[8]);
                             break;
-                        case 8: //ToTerm("function") + id + dospuntos + TIPODATO + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
-                            Debug.WriteLine("================================================================================");
-                            Debug.WriteLine("Creo entorno(" + Nodo.Term.Name + "): " + Nodo.ChildNodes[1].Token.Text);
-                            Debug.WriteLine("================================================================================");
+                        case 10: //ToTerm("function") + id + dospuntos + TIPODATO + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                            //Debug.WriteLine("================================================================================");
+                            //Debug.WriteLine("Creo entorno(" + Nodo.Term.Name + "): " + Nodo.ChildNodes[1].Token.Text);
+                            //Debug.WriteLine("================================================================================");
                             this.ambito = Nodo.ChildNodes[1].Token.Text;
                             this.NodoBegin = Nodo.ChildNodes[7];
+                            this.IsRetorno = true;
+                            this.tipoDatoRetorno = getTipoDatoFunction(Nodo.ChildNodes[3]);
                             Estructura(Nodo.ChildNodes[5]);
                             break;
                     }
@@ -104,17 +128,18 @@ namespace _OLC2_Proyecto2.Arbol
                     switch (Nodo.ChildNodes.Count)
                     {
                         case 11: //ToTerm("procedure") + id + parentA + PARAMETROS + parentC + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
-                            Debug.WriteLine("================================================================================");
-                            Debug.WriteLine("Creo entorno(" + Nodo.Term.Name + "): " + Nodo.ChildNodes[1].Token.Text);
-                            Debug.WriteLine("================================================================================");
+                            //Debug.WriteLine("================================================================================");
+                            //Debug.WriteLine("Creo entorno(" + Nodo.Term.Name + "): " + Nodo.ChildNodes[1].Token.Text);
+                            //Debug.WriteLine("================================================================================");
                             this.ambito = Nodo.ChildNodes[1].Token.Text;
                             this.NodoBegin = Nodo.ChildNodes[8];
+                            CrearParametros(Nodo.ChildNodes[3]);
                             Estructura(Nodo.ChildNodes[6]);
                             break;
                         case 8: //ToTerm("procedure") + id + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
-                            Debug.WriteLine("================================================================================");
-                            Debug.WriteLine("Creo entorno(" + Nodo.Term.Name + "): " + Nodo.ChildNodes[1].Token.Text);
-                            Debug.WriteLine("================================================================================");
+                            //Debug.WriteLine("================================================================================");
+                            //Debug.WriteLine("Creo entorno(" + Nodo.Term.Name + "): " + Nodo.ChildNodes[1].Token.Text);
+                            //Debug.WriteLine("================================================================================");
                             this.ambito = Nodo.ChildNodes[1].Token.Text;
                             this.NodoBegin = Nodo.ChildNodes[5];
                             Estructura(Nodo.ChildNodes[3]);
@@ -166,12 +191,12 @@ namespace _OLC2_Proyecto2.Arbol
                         switch (Nodo.ChildNodes[0].Term.Name)
                         {
                             case "VARYTYPE":
-                                Debug.WriteLine("Agregando variable a tabla de simbolos actual");
+                                //Debug.WriteLine("Agregando variable a tabla de simbolos actual");
                                 Variable_y_type(Nodo.ChildNodes[0]); // ChildNodes[0] --> VARYTYPE
                                 break;
                             case "FUNCIONES":
                                 // ChildNodes[0] --> FUNCIONES
-                                Debug.WriteLine("** Creando un nuevo entorno a guardar, funcion");
+                                //Debug.WriteLine("** Creando un nuevo entorno a guardar, funcion");
                                 //variables = varAux;
                                 Entorno entVar = new Entorno(Nodo.ChildNodes[0], ambito);
                                 entVar.CrearArbol();
@@ -179,7 +204,7 @@ namespace _OLC2_Proyecto2.Arbol
                                 break;
                             case "PROCEDIMIENTO":
                                 // ChildNodes[0] --> PROCEDIMIENTO
-                                Debug.WriteLine("** Creando un nuevo entorno a guardar, procedimiento");
+                                //Debug.WriteLine("** Creando un nuevo entorno a guardar, procedimiento");
                                 //variables = varAux;
                                 Entorno entProc = new Entorno(Nodo.ChildNodes[0], ambito);
                                 entProc.CrearArbol();
@@ -207,19 +232,19 @@ namespace _OLC2_Proyecto2.Arbol
             switch (Nodo.ChildNodes[0].Term.Name)
             {
                 case "type":
-                    Debug.WriteLine("** Accion type no funcional");
+                    //Debug.WriteLine("** Accion type no funcional");
                     break;
                 case "var": //ToTerm("var") + LSTVARS
-                    LstVars(Reservada.var, Nodo.ChildNodes[1]);
+                    LstVars(Reservada.variable, Nodo.ChildNodes[1]);
                     break;
                 case "const":
-                    Debug.WriteLine("** Accion const no funcional");
+                    //Debug.WriteLine("** Accion const no funcional");
                     break;
                 case "id":
-                    Debug.WriteLine("** Accion id no funcional");
+                    //Debug.WriteLine("** Accion id no funcional");
                     break;
                 default:
-                    Debug.WriteLine("Error AST-->Nodo en funcion Variable_y_type no existente/detectado");
+                    //Debug.WriteLine("Error AST-->Nodo en funcion Variable_y_type no existente/detectado");
                     break;
             }
         }
@@ -289,12 +314,13 @@ namespace _OLC2_Proyecto2.Arbol
 
                     case "id":
                         String id = Nodo.Token.Value.ToString();
-
+                        /*
                         Debug.WriteLine("LLEGO A RECONOCER LAS VARIABLES A DECLARAR PAPU");
                         Debug.WriteLine("nombre variable: " + id);
                         Debug.WriteLine("tipo objeto: " + tipoObj);
                         Debug.WriteLine("tipo dato: " + tipodato);
                         Debug.WriteLine("Valor asignable: " + ret.Valor.ToString());
+                        */
 
                         if (!ExisteSimbolo(id))
                         {
@@ -302,12 +328,12 @@ namespace _OLC2_Proyecto2.Arbol
                             {
                                 if (ret.Tipo.Equals(tipodato)) //Si son del mismo tipo se pueden asignar (variable con variable)
                                 {
-                                    Debug.WriteLine("Se creo variable: " + id + " --> " + ret.Valor + " (" + ret.Tipo + ")");
-                                    variables.Add(new Simbolo(Reservada.varLocal, id, ret.Valor, tipodato, Reservada.var, getLinea(Nodo), getColumna(Nodo), true, null));
+                                    //Debug.WriteLine("Se creo variable: " + id + " --> " + ret.Valor + " (" + ret.Tipo + ")");
+                                    variables.Add(new Simbolo(Reservada.byVal, id, ret.Valor, tipodato, Reservada.variable, getLinea(Nodo), getColumna(Nodo), true, null));
                                 }
                                 else
                                 {
-                                    Debug.WriteLine("Error Semantico-->Asignacion no valida, tipo de dato incorrecto linea:" + getLinea(Nodo) + " columna:" + getColumna(Nodo));
+                                    //Debug.WriteLine("Error Semantico-->Asignacion no valida, tipo de dato incorrecto linea:" + getLinea(Nodo) + " columna:" + getColumna(Nodo));
                                     lstError.Add(new Error(Reservada.ErrorSemantico, "Asignacion no valida, tipo de dato incorrecto", getLinea(Nodo), getColumna(Nodo)));
                                 }
                             }
@@ -335,6 +361,108 @@ namespace _OLC2_Proyecto2.Arbol
             }
             else
                 Debug.WriteLine("Error AST-->Nodo en funcion DeclaracionAsignacionData no existente/detectado/null");
+        }
+
+        private void CrearParametros(ParseTreeNode Nodo)
+        {
+            /*
+             PARAMETROS.Rule = PARAMETROS + puntocoma + PARAMETRO
+                            | PARAMETRO
+            */
+            switch (Nodo.Term.Name)
+            {
+                case "PARAMETROS":
+                    foreach (ParseTreeNode hijo in Nodo.ChildNodes)
+                    {
+                        CrearParametros(hijo);
+                    }
+                    break;
+                case "PARAMETRO":
+                    Parametros(Nodo);
+                    break;
+                default:
+                    Debug.WriteLine("Error AST-->Nodo en funcion CrearParametros no existente/detectado");
+                    break;
+            }
+        }
+
+        private void Parametros(ParseTreeNode Nodo)
+        {
+            /*
+            PARAMETRO.Rule = IDPARAM + dospuntos + TIPODATO
+                            | ToTerm("var") + IDPARAM + dospuntos + TIPODATO
+                            | Empty
+             */
+            switch (Nodo.Term.Name) // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! REVISAR SI ACA TENGO PARAMETROS O ESTAN VACIOS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            {
+                case "PARAMETRO":
+                    //IDPARAM + dospuntos + TIPODATO
+                    if (Nodo.ChildNodes.Count == 3)
+                    {
+                        String td = getTipoDato(Nodo.ChildNodes[2]);
+                        DeclaracionAsignacionParamData(Reservada.byVal, td, Nodo.ChildNodes[0]);
+                    }
+                    //ToTerm("var") + IDPARAM + dospuntos + TIPODATO
+                    else if (Nodo.ChildNodes.Count == 4)
+                    {
+                        String td = getTipoDato(Nodo.ChildNodes[3]);
+                        DeclaracionAsignacionParamData(Reservada.byRef, td, Nodo.ChildNodes[1]);
+                    }
+                    break;
+                default:
+                    Debug.WriteLine("Error AST-->Nodo en funcion Parametros no existente/detectado");
+                    break;
+            }
+        }
+
+        private void DeclaracionAsignacionParamData(string tipoParam, string tipodato, ParseTreeNode Nodo)
+        {
+            /*
+            IDPARAM.Rule = IDPARAM + coma + id
+                            | id
+             */
+            if (Nodo != null)
+            {
+                switch (Nodo.Term.Name)
+                {
+                    case "IDPARAM":
+                        foreach (ParseTreeNode hijo in Nodo.ChildNodes)
+                        {
+                            DeclaracionAsignacionParamData(tipoParam, tipodato, hijo);
+                        }
+                        break;
+
+                    case "id":
+                        String id = Nodo.Token.Value.ToString();
+                        /*
+                        Debug.WriteLine("LLEGO A RECONOCER LOS PARAMETROS A DECLARAR PAPU");
+                        Debug.WriteLine("nombre variable: " + id);
+                        Debug.WriteLine("tipo parametro: " + tipoParam);
+                        Debug.WriteLine("tipo dato: " + tipodato);
+                        */
+                        if (!ExisteSimbolo(id))
+                        {
+                            //Debug.WriteLine("Se creo parametro: " + tipoParam + " " + id + " --> " + getInicialDato(tipodato) + " (" + tipodato + ")");
+                            variables.Add(new Simbolo(tipoParam, id, getInicialDato(tipodato), tipodato, Reservada.parametro, getLinea(Nodo), getColumna(Nodo), true, null));    
+                        }
+                        else
+                        {
+                            //Debug.WriteLine("Error Semantico-->Parametro ya existente linea:" + getLinea(Nodo) + " columna:" + getColumna(Nodo));
+                            lstError.Add(new Error(Reservada.ErrorSemantico, "Parametro ya existente", getLinea(Nodo), getColumna(Nodo)));
+                        }
+
+                        break;
+
+                    case ",": //No hace nada
+                        break;
+
+                    default:
+                        Debug.WriteLine("Error AST-->Nodo en funcion DeclaracionAsignacionParamData no existente/detectado");
+                        break;
+                }
+            }
+            else
+                Debug.WriteLine("Error AST-->Nodo en funcion DeclaracionAsignacionParamData no existente/detectado/null");
         }
 
         private Retorno Condicion(ParseTreeNode Nodo)
@@ -1360,6 +1488,21 @@ namespace _OLC2_Proyecto2.Arbol
             return SumaAscii;
         }
 
+        private string getTipoDatoFunction(ParseTreeNode Nodo)
+        {
+            switch(Nodo.ChildNodes[0].Term.Name)
+            {
+                case "String":
+                    return Reservada.Cadena;
+                case "Integer":
+                    return Reservada.Entero;
+                case "Real":
+                    return Reservada.Real;
+                case "Boolean":
+                    return Reservada.Booleano;
+            }
+            return "Unknow";
+        }
         private int GetAscii(String caracter)
         {
             return Encoding.ASCII.GetBytes(caracter)[0];

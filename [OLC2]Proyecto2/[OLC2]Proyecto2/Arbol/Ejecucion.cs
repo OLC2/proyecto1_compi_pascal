@@ -13,7 +13,8 @@ namespace _OLC2_Proyecto2.Arbol
         private Entorno cimaEnt;
         public Stack<Entorno> pilaEntornos;
 
-        public List<Error> lstError = new List<Error>();
+        private List<Celda> arreglo;                    //Para los parametros
+        public static List<Error> lstError = new List<Error>();
         
         public Stack<TablaSimbolos> pilaSimbolos;
         
@@ -37,7 +38,7 @@ namespace _OLC2_Proyecto2.Arbol
 
         private void ejecutar(ParseTreeNode Nodo)
         {
-            TablaSimbolos proc = new TablaSimbolos(0, Reservada.Program, false, false, false);
+            TablaSimbolos proc = new TablaSimbolos(0, Reservada.Program, false, false);
             pilaSimbolos.Push(proc);
             cimaTS = proc;        //Estableciendo la tabla de simbolos cima
             nivelActual = 0;    //Estableciendo el nivel actual
@@ -56,54 +57,75 @@ namespace _OLC2_Proyecto2.Arbol
                     foreach (ParseTreeNode hijo in Nodo.ChildNodes)
                     {
                         RetornoAc retorno = Sentencias(hijo); // SENTENCIA | SENTENCIAS
-                        /*
-                        if (retorno.RetornaVal && cima.RetornaVal)
+                        
+                        if (retorno.Retorna && cimaEnt.IsRetorno)
                         {
                             return retorno;
                         }
-                        else if (retorno.Retorna && cima.Retorna)
+                        else if (retorno.Detener && cimaTS.Detener)
                         {
                             return retorno;
                         }
-                        else if (retorno.Detener && cima.Detener)
-                        {
-                            return retorno;
-                        }*/
                     }
                     break;
                 case "SENTENCIA":
                     /*
                         SENTENCIA.Rule = ToTerm("write") + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
                             | ToTerm("writeln") + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
+                            | ToTerm("while") + CONDICION + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                            | ToTerm("for") + id + ToTerm(":=") + TERMINALES + ToTerm("to") + TERMINALES + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                            | ToTerm("continue") + puntocoma
+                            | ToTerm("break") + puntocoma
                     */
                     #region
                     switch (Nodo.ChildNodes.Count)
                     {
-                        case 1: // VARLOCAL
-                                //Console.WriteLine("VARLOCAL");
-                        #region
-                        /*VariablesLocales(Nodo.ChildNodes[0]);
-
-                        RetornoAc retornoVar = new RetornoAc("-", "-", "0", "0");
-
-                        return new RetornoAc("-", "-", "0", "0");
-                        */
-                        #endregion
+                        case 2:
+                                //ToTerm("continue") + puntocoma
+                                //ToTerm("break") + puntocoma
+                            #region
+                            switch (Nodo.ChildNodes[0].Term.Name)
+                            {
+                                case "continue":
+                                    //RetornoAc retornoR = new RetornoAc("-", "-", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0]));
+                                    //retornoR.Retorna = true;
+                                    //return retornoR;
+                                    break;
+                                case "break":
+                                    RetornoAc retornoB = new RetornoAc("-", "-", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0]));
+                                    retornoB.Detener = true;
+                                    return retornoB;
+                            }
+                            #endregion
+                            break;
                         case 4:
                             /*
-                             * | id + parentA + parentC + puntocoma
-                             * | id + ToTerm(":=") + CONDICION + puntocoma
+                             * id + parentA + parentC + puntocoma
+                             * id + ToTerm(":=") + CONDICION + puntocoma
+                             * ToTerm("exit") + parentA + parentC + puntocoma
                              */
-                            switch (Nodo.ChildNodes[1].Term.Name)
+                            #region
+                            if (Nodo.ChildNodes[0].Term.Name.Equals("id") && Nodo.ChildNodes[1].Term.Name.Equals("("))
                             {
-                                case "(":
-                                    string id4 = Nodo.ChildNodes[0].Token.Value.ToString();
-                                    Entorno ent4 = getEntornoLocal(id4, cimaEnt.AmbitoPadre);
+                                //id + parentA + parentC + puntocoma
+                                string id4 = Nodo.ChildNodes[0].Token.Value.ToString();
+                                Entorno ent4 = getEntornoLocal(id4, cimaEnt.AmbitoPadre);
+                                
+                                if (ent4 != null)
+                                {
+                                    int cantParams = 0;
+                                    foreach (Simbolo sim in ent4.variables)
+                                    {
+                                        if(sim.TipoObjeto.Equals(Reservada.parametro))
+                                        {
+                                            cantParams++;
+                                        }
+                                    }
 
-                                    if (ent4 != null)
+                                    if(cantParams == 0)
                                     {
                                         nivelActual++;    //Estableciendo el nivel actual
-                                        TablaSimbolos proc = new TablaSimbolos(0, Reservada.Procedure, false, false, false);
+                                        TablaSimbolos proc = new TablaSimbolos(0, Reservada.Procedure, cimaEnt.IsRetorno, false);
                                         pilaSimbolos.Push(proc);
                                         pilaEntornos.Push(ent4);
                                         cimaTS = proc;          //Estableciendo la tabla de simbolos cima
@@ -121,15 +143,57 @@ namespace _OLC2_Proyecto2.Arbol
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Error Semantico-->Function/Procedure no existente linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
-                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Function/Procedure no existente", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                        Console.WriteLine("Error Semantico-->Parametros incorrectos linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Parametros incorrectos", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
                                     }
-                                    break;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Error Semantico-->Function/Procedure no existente linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                    lstError.Add(new Error(Reservada.ErrorSemantico, "Function/Procedure no existente", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                }
+                            }
+                            else if(Nodo.ChildNodes[0].Term.Name.Equals("exit") && Nodo.ChildNodes[1].Term.Name.Equals("(")) 
+                            {
+                                //ToTerm("exit") + parentA + parentC + puntocoma
+                                RetornoAc retornoR = new RetornoAc(cimaEnt.TipoDatoRetorno, getInicialDato(cimaEnt.TipoDatoRetorno), getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0]));
+                                retornoR.Retorna = true;
+                                return retornoR;
+                            }
+                            else if(Nodo.ChildNodes[0].Term.Name.Equals("id") && Nodo.ChildNodes[1].Term.Name.Equals(":="))
+                            {
+                                //id + ToTerm(":=") + CONDICION + puntocoma
+                                #region
+                                string id4 = Nodo.ChildNodes[0].Token.Value.ToString();
 
-                                case ":=":
-                                    #region
-                                    id4 = Nodo.ChildNodes[0].Token.Value.ToString();
+                                if (id4.Equals(cimaEnt.Ambito))
+                                {
+                                    //Retorno de valor a traves del nombre de la function actual
+                                    Retorno retu = Condicion(Nodo.ChildNodes[2]);
 
+                                    if (retu != null)
+                                    {
+                                        if (retu.Tipo.Equals(cimaEnt.TipoDatoRetorno))
+                                        {
+                                            RetornoAc retornoV = new RetornoAc(retu.Tipo, retu.Valor, retu.Linea, retu.Columna);
+                                            retornoV.Retorna = true;
+                                            return retornoV;
+                                        }
+                                        else
+                                        {
+                                            //Console.WriteLine("Error Semantico-->Tipo de returno incorrecto linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Tipo de returno incorrecto", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Error Semantico-->Retono de expresion incorrecta linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Retono de expresion incorrecta", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                    }
+                                }
+                                else
+                                {
+                                    //Asignacion de valor a una variable
                                     Simbolo var = RetornarSimbolo(id4); //Busco en mi nivel actual
 
                                     if (var != null) //Si la variable existe
@@ -140,58 +204,9 @@ namespace _OLC2_Proyecto2.Arbol
                                         {
                                             if (ret.Tipo.Equals(var.Tipo)) //Si son del mismo tipo se pueden asignar (variable con variable)
                                             {
-                                                Console.WriteLine("Se asigno variable: " + id4 + " --> " + ret.Valor + " (" + ret.Tipo + ")");
-                                                var.Valor = ret.Valor; // Asignamos el nuevo valor al id
+                                                //Console.WriteLine("Se asigno variable: " + id4 + " --> " + ret.Valor + " (" + ret.Tipo + ")");
+                                                var.Valor = ret.Valor; // Asignamos el nuevo valor a la variable
                                             }
-                                            /*
-                                            else if (ret.Tipo.Equals(Reservada.arreglo) && var.TipoObjeto.Equals(Reservada.arreglo))
-                                            {
-                                                Simbolo arregloAsignar = RetornarSimbolo(ret.Valor); // ret.Valor contiene el nombre del arreglo a asignar
-
-                                                if (arregloAsignar == null) //Si no existe en mi nivel actual busco en las globales
-                                                {
-                                                    arregloAsignar = cimaG.RetornarSimbolo(ret.Valor);
-                                                    Console.WriteLine(">>> Se busco en las globalbes <<<");
-                                                }
-                                                Console.WriteLine(">>> SE RECONOCIO ASIGNACION DE ARREGLOS PRRONES <<<");
-
-                                                if (arregloAsignar != null)
-                                                {
-                                                    Console.WriteLine(">>> SE RECONOCIO ASIGNACION DE ARREGLOS PRRONES <<<");
-                                                    Console.WriteLine("Se asigno ARREGLO: " + id + " --> " + ret.Valor + " (" + ret.Tipo + ")");
-                                                    if (arregloAsignar.Tipo.Equals(var.Tipo))
-                                                    {
-                                                        if (var.Arreglo.Count >= arregloAsignar.Arreglo.Count)
-                                                        {
-                                                            int i = 0;
-                                                            foreach (Celda cel in arregloAsignar.Arreglo)
-                                                            {
-                                                                var.Arreglo.ElementAt(i).valor = arregloAsignar.Arreglo.ElementAt(i).valor;
-                                                                i++;
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            int i = 0;
-                                                            foreach (Celda cel in var.Arreglo)
-                                                            {
-                                                                var.Arreglo.ElementAt(i).valor = arregloAsignar.Arreglo.ElementAt(i).valor;
-                                                                i++;
-                                                            }
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        Console.WriteLine("Error Semantico-->Asignacion no valida, tipo de dato incorrecto linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
-                                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Asignacion no valida, tipo de dato incorrecto", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    Console.WriteLine("Error Semantico-->Asignacion no valida de arreglo linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
-                                                    lstError.Add(new Error(Reservada.ErrorSemantico, "Asignacion no valida de arreglo", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
-                                                }
-                                            }*/
                                             else
                                             {
                                                 Console.WriteLine("Error Semantico-->Asignacion no valida, tipo de dato incorrecto linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
@@ -209,18 +224,135 @@ namespace _OLC2_Proyecto2.Arbol
                                         Console.WriteLine("Error Semantico-->Variable " + id4 + " no existente linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
                                         lstError.Add(new Error(Reservada.ErrorSemantico, "Variable " + id4 + " no existente", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
                                     }
-                                    #endregion
-
-                                    break;
+                                }                                
+                                #endregion
                             }
                             break;
+                            #endregion
                         case 5: /*
+                                 * ToTerm("repeat") + SENTENCIAS + ToTerm("until") + CONDICION + puntocoma
+                                 * ToTerm("exit") + parentA + CONDICION + parentC + puntocoma
                                  * ToTerm("write") + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
                                  * ToTerm("writeln") + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
+                                 * id + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
                                  */
                             #region
                             switch (Nodo.ChildNodes[0].Term.Name)
                             {
+                                case "repeat":
+                                    //ToTerm("repeat") + SENTENCIAS + ToTerm("until") + CONDICION + puntocoma
+                                    #region
+                                    Retorno condW = Condicion(Nodo.ChildNodes[3]);
+
+                                    if (condW != null)
+                                    {
+                                        if (condW.Tipo.Equals(Reservada.Booleano)) // Si la condicion es booleana
+                                        {
+                                            TablaSimbolos dowhilee = new TablaSimbolos(nivelActual, Reservada.Repeat, cimaEnt.IsRetorno, true);
+                                            pilaSimbolos.Push(dowhilee);
+                                            cimaTS = dowhilee; //Estableciendo la tabla de simbolos cima
+                                                             //nivelActual = 1; //Estableciendo el nivel actual <<-- No en este caso de Do-While
+
+                                            RetornoAc ret1 = Sentencias(Nodo.ChildNodes[1]); // Las sentencias se ejecutan al menos una vez en el Do-While
+
+                                            if (ret1.Retorna)
+                                            {
+                                                pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                return ret1;
+                                            }
+                                            else if (ret1.Detener)
+                                            {
+                                                pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                break;
+                                            }
+
+                                            pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                            cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+
+                                            if (condW.Valor.Equals("False"))
+                                            {
+                                                int contador = 1;
+
+                                                while (true)
+                                                {
+                                                    TablaSimbolos dowhileee = new TablaSimbolos(nivelActual, Reservada.Repeat, cimaEnt.IsRetorno, true);
+                                                    pilaSimbolos.Push(dowhileee);
+                                                    cimaTS = dowhileee; //Estableciendo la tabla de simbolos cima
+                                                                      //nivelActual = 1; //Estableciendo el nivel actual <<-- No en este caso de Do-While
+
+                                                    ret1 = Sentencias(Nodo.ChildNodes[1]);
+
+                                                    condW = Condicion(Nodo.ChildNodes[3]); // Esta condicion se vuelve a evaluar, como las variables se actualizan entonces el resultado de la condicion cambia
+
+                                                    if (ret1.Retorna)
+                                                    {
+                                                        pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                        cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                        return ret1;
+                                                    }
+                                                    else if (ret1.Detener)
+                                                    {
+                                                        pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                        cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                        return ret1;
+                                                    }
+
+                                                    if ((condW.Valor.Equals("True")) || (contador == 50)) // Si la condicion es falsa // Maximo de iteraciones del do-while es 50
+                                                    {
+                                                        pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                        cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                        break;
+                                                    }
+                                                    contador++;
+
+                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                }
+                                            }
+                                            return new RetornoAc("-", "-", "0", "0");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Valor de condicion invalida");
+                                            Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[5]) + " columna:" + getColumna(Nodo.ChildNodes[5]));
+                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Valor de condicion invalida", getLinea(Nodo.ChildNodes[5]), getColumna(Nodo.ChildNodes[5])));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Condicion invalida");
+                                        Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[5]) + " columna:" + getColumna(Nodo.ChildNodes[5]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Condicion invalida", getLinea(Nodo.ChildNodes[5]), getColumna(Nodo.ChildNodes[5])));
+                                    }
+                                    #endregion
+                                    break;
+                                case "exit":
+                                    #region
+                                    Retorno retu = Condicion(Nodo.ChildNodes[2]);
+
+                                    if (retu != null)
+                                    {
+                                        if(retu.Tipo.Equals(cimaEnt.TipoDatoRetorno))
+                                        {
+                                            RetornoAc retornoV = new RetornoAc(retu.Tipo, retu.Valor, retu.Linea, retu.Columna);
+                                            retornoV.Retorna = true;
+                                            return retornoV;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Error Semantico-->Tipo de returno incorrecto linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Tipo de returno incorrecto", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Error Semantico-->Retono de expresion incorrecta linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Retono de expresion incorrecta", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                    }
+                                    #endregion
+                                    break;
                                 case "write":
                                     string retWrite = getCadenaPrint(Nodo.ChildNodes[2]);
 
@@ -234,15 +366,343 @@ namespace _OLC2_Proyecto2.Arbol
                                     Form1.Salida.AppendText(retWriteln+"\n");
                                     Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PRINT++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
                                     return new RetornoAc("-", "-", "0", "0");
+                                case "id":
+                                    #region
+                                    // id + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
+                                    //PRIMERO OBTENGO LA CANTIDAD DE VALORES EN MIS PARAMETROS ACEPTADOS POR EL ARREGLO
+                                    arreglo = new List<Celda>(); //Este arreglo es para almacenar los parametros del metodo que se invoco
+                                    ValidarParametrosMetodo(Nodo.ChildNodes[2]); // Mandamos los parametros
+                                    //AHORA BUSCO LA FUNCION EN BASE AL NOMBRE Y A MI ARREGLO DE PARAMETROS
+                                    String id4 = Nodo.ChildNodes[0].Token.Value.ToString();
+                                    
+                                    Entorno ent4 = getEntornoLocal(id4, cimaEnt.AmbitoPadre);
+
+                                    if (ent4 != null)
+                                    {
+                                        ent4 = EvaluarEnvioParametros(ent4, arreglo);
+
+                                        if (ent4 != null) 
+                                        {
+                                            nivelActual++;          //Aumentamos el nivel actual ya que accedemos a otro metodo
+                                            TablaSimbolos metodo4 = new TablaSimbolos(nivelActual, Reservada.Funcion, cimaEnt.IsRetorno, true);
+                                            pilaSimbolos.Push(metodo4);
+                                            pilaEntornos.Push(ent4);
+                                            cimaTS = metodo4;       //Estableciendo la tabla de simbolos cima
+                                            cimaEnt = ent4;         //Estableciendo entorno actual
+
+                                            Sentencias(cimaEnt.nodoBegin);
+
+                                            ResetParametros(cimaEnt);
+
+                                            nivelActual--; //Disminuimos el nivel actual ya que salimos del metodo invocado
+                                            pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                            pilaEntornos.Pop();
+                                            cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                            cimaEnt = pilaEntornos.Peek();
+
+                                            return new RetornoAc("-", "-", "0", "0");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Error Semantico-->Parametros de funcion no coinciden (2) linea:" + getLinea(Nodo.ChildNodes[1]) + " columna:" + getColumna(Nodo.ChildNodes[1]));
+                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Parametros de funcion no coinciden (2)", getLinea(Nodo.ChildNodes[1]), getColumna(Nodo.ChildNodes[1])));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Error Semantico-->Function/Procedure no existente (1) linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Function/Procedure no existente (1)", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                    }
+                                    #endregion
+                                    break;
                             }
                             #endregion
                             break;
-                        
+                        case 7:
+                            //ToTerm("while") + CONDICION + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                            #region
+                            switch(Nodo.ChildNodes[0].Term.Name)
+                            {
+                                case "while":
+                                    #region
+                                    Retorno cond7 = Condicion(Nodo.ChildNodes[1]);
+
+                                    if (cond7 != null)
+                                    {
+                                        if (cond7.Tipo.Equals(Reservada.Booleano)) // Si la condicion es booleana
+                                        {
+                                            if (cond7.Valor.Equals("True"))
+                                            {
+                                                int contador = 1;
+                                                while (true)
+                                                {
+                                                    TablaSimbolos whilee = new TablaSimbolos(nivelActual, Reservada.Whilee, cimaEnt.IsRetorno, true);
+                                                    pilaSimbolos.Push(whilee);
+                                                    cimaTS = whilee; //Estableciendo la tabla de simbolos cima
+
+                                                    RetornoAc ret1 = Sentencias(Nodo.ChildNodes[4]);
+                                                    cond7 = Condicion(Nodo.ChildNodes[1]); // Esta condicion se vuelve a evaluar, como las variables se actualizan entonces el resultado de la condicion cambia
+
+                                                    if (ret1.Retorna)
+                                                    {
+                                                        pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                        cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                        return ret1;
+                                                    }
+                                                    else if (ret1.Detener)
+                                                    {
+                                                        pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                        cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                        //return ret1;
+                                                        break;
+                                                    }
+
+                                                    if ((cond7.Valor.Equals("False")) || (contador == 50)) // Si la condicion es falsa // Maximo de iteraciones del while es 50
+                                                    {
+                                                        pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                        cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                        break;
+                                                    }
+
+                                                    contador++;
+                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                }
+                                                return new RetornoAc("-", "-", "0", "0");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Valor de condicion invalida");
+                                            Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Valor de condicion invalida", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Condicion invalida");
+                                        Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Condicion invalida", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                    }
+                                    #endregion
+                                    break;
+                            }
+                            #endregion
+                            break;
+                        case 11:
+                            //ToTerm("for") + id + ToTerm(":=") + TERMINALES + ToTerm("to") + TERMINALES + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                            #region
+                            String id15 = Nodo.ChildNodes[1].Token.Value.ToString();
+                            Simbolo var15 = RetornarSimbolo(id15);
+
+                            if (var15 != null) //Si mi asignacion de variable es distinta de null
+                            {
+                                Retorno ret15 = Terminales(Nodo.ChildNodes[3]);
+                                Retorno condicional = Terminales(Nodo.ChildNodes[5]);
+
+                                if (ret15.Tipo.Equals(var15.Tipo) && (ret15.Tipo.Equals(Reservada.Real) || ret15.Tipo.Equals(Reservada.Entero))) //Si son del mismo tipo se pueden asignar (variable con expresion)
+                                {
+                                    var15.Valor = ret15.Valor;  // Asignamos el nuevo valor a la variable
+
+                                    if (condicional.Tipo.Equals(Reservada.Entero) || condicional.Tipo.Equals(Reservada.Real))
+                                    {
+                                        if (!condicionFor(var15, condicional)) //Si la condicion es True se ejecutan las sentencias
+                                        {
+                                            int contador = 0;
+
+                                            while (true)
+                                            {
+                                                TablaSimbolos forr = new TablaSimbolos(nivelActual, Reservada.Forr, cimaEnt.IsRetorno, true);
+                                                pilaSimbolos.Push(forr);
+                                                cimaTS = forr; //Estableciendo la tabla de simbolos cima
+                                                
+                                                RetornoAc ret1 = Sentencias(Nodo.ChildNodes[8]); //Ejecuta sentencias
+                                                if (ret1.Retorna)
+                                                {
+                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                    return ret1;
+                                                }
+                                                else if (ret1.Detener)
+                                                {
+                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                    //return ret1;
+                                                    break;
+                                                }
+
+                                                Simbolo inc = IncrementoFor(var15); //Ejecuta operacion incrementa/decremento
+
+                                                if(inc == null)
+                                                {
+                                                    //Si entra aca significa que trono
+                                                    return new RetornoAc("-", "-", "0", "0");
+                                                }
+                                                var15 = inc;
+
+                                                if (condicionFor(var15, condicional) || (contador == 50)) // Si la condicion es falsa // Maximo de iteraciones del For es 50
+                                                {
+                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                    break;
+                                                }
+
+                                                contador++;
+
+                                                pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                            }
+                                            return new RetornoAc("-", "-", "0", "0");
+                                        }
+                                        return new RetornoAc("-", "-", "0", "0");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Error Semantico-->Tipo de condicional incorrecta linea:" + getLinea(Nodo.ChildNodes[4]) + " columna:" + getColumna(Nodo.ChildNodes[4]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Tipo de condicional incorrecta", getLinea(Nodo.ChildNodes[4]), getColumna(Nodo.ChildNodes[4])));
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Error Semantico-->Asignacion no valida, tipo de dato incorrecto linea:" + getLinea(Nodo.ChildNodes[2]) + " columna:" + getColumna(Nodo.ChildNodes[2]));
+                                    lstError.Add(new Error(Reservada.ErrorSemantico, "Asignacion no valida, tipo de dato incorrecto", getLinea(Nodo.ChildNodes[2]), getColumna(Nodo.ChildNodes[2])));
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Error Semantico-->Variable no existente linea:" + getLinea(Nodo.ChildNodes[2]) + " columna:" + getColumna(Nodo.ChildNodes[2]));
+                                lstError.Add(new Error(Reservada.ErrorSemantico, "Variable no existente incorrecta", getLinea(Nodo.ChildNodes[2]), getColumna(Nodo.ChildNodes[2])));
+                            }
+                            #endregion
+                            break;
                     }
                     #endregion
                     break;
             }
             return new RetornoAc("-", "-", "0", "0");
+        }
+
+        private Boolean condicionFor(Simbolo var, Retorno condicional)
+        {
+            if (var.Tipo.Equals(Reservada.Real) || var.Tipo.Equals(Reservada.Entero))
+            {
+                if (condicional.Tipo.Equals(Reservada.Real) || condicional.Tipo.Equals(Reservada.Entero))
+                {
+                    Double var1 = Double.Parse(var.Valor);
+                    Double cond1 = Double.Parse(condicional.Valor);
+                    if(var1 > cond1)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        private Simbolo IncrementoFor(Simbolo var)
+        {
+            if(var.Tipo.Equals(Reservada.Entero))
+            {
+                int oper = Int32.Parse(var.Valor);
+                oper = oper + 1;
+                var.Valor = oper + "";
+                return var;
+            }
+            if (var.Tipo.Equals(Reservada.Entero))
+            {
+                Double oper = Double.Parse(var.Valor);
+                oper = oper + 1;
+                var.Valor = oper + "";
+                return var;
+            }
+            return null;
+        }
+
+        private Entorno EvaluarEnvioParametros(Entorno ent, List<Celda> arreglo)
+        {
+            if (ent.variables.Count > 0)
+            {
+                int cant = 0;
+                foreach (Simbolo sim in ent.variables)
+                {
+                    if (sim.TipoObjeto.Equals(Reservada.parametro))
+                    {
+                        cant++;
+                    }
+                }
+                if (cant == 0) //No tiene ningun parametro
+                {
+                    return null;
+                }
+
+                if (cant == arreglo.Count)
+                {
+                    int cont = 0;
+
+                    foreach (Simbolo sim in ent.variables)
+                    {
+                        if (sim.TipoObjeto.Equals(Reservada.parametro))
+                        {
+                            if (sim.Tipo.Equals(arreglo[cont].tipo))
+                            {
+                                sim.Valor = arreglo[cont].valor;
+                            }
+                            cont++;
+                        }                        
+                    }
+
+                    if (cant == cont)
+                    {
+                        return ent;
+                    }
+                    ResetParametros(ent);
+                    return null;
+                }
+            }
+            return null; //Si llega aca significa que el entorno a accesar no tiene parametros
+        }
+
+        private void ResetParametros(Entorno ent)
+        {
+            //Devuelve el estado de los parametros a uno actual
+            foreach (Simbolo sim in ent.variables)
+            {
+                if (sim.TipoObjeto.Equals(Reservada.parametro))
+                {
+                    sim.Valor = getInicialDato(sim.Tipo);
+                }
+            }
+        }
+
+
+        private void ValidarParametrosMetodo(ParseTreeNode Nodo)
+        {
+            //ASIGNAR_PARAMETRO.Rule = ASIGNAR_PARAMETRO + coma + CONDICION
+            //                         | CONDICION
+            #region
+            switch (Nodo.Term.Name)
+            {
+                case "ASIGNAR_PARAMETRO":
+                    foreach (ParseTreeNode hijo in Nodo.ChildNodes)
+                    {
+                        ValidarParametrosMetodo(hijo);
+                    }
+                    break;
+                case "CONDICION":
+                    Retorno retorno = Condicion(Nodo);
+                    if (retorno != null)
+                    {
+                        arreglo.Add(new Celda(retorno.Tipo, retorno.Valor));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error Semantico-->Asignacion de parametro incorrecta linea:" + "0" + " columna:" + "0");
+                        lstError.Add(new Error(Reservada.ErrorSemantico, "Asignacion de parametro incorrecta", "0" + "", "0" + ""));
+                    }
+                    break;
+            }
+            #endregion
         }
 
         private string getCadenaPrint(ParseTreeNode Nodo)
@@ -1138,42 +1598,53 @@ namespace _OLC2_Proyecto2.Arbol
                     switch (Nodo.ChildNodes[0].Term.Name)
                     {
                         case "id": //| id + parentA + parentC // Invocacion funcion si parametros
-                            /*
+                            
                             String id3 = Nodo.ChildNodes[0].Token.Value.ToString();
                             //Funciones func3 = tablafunciones.RetornarFuncion(id3);
-                            Funciones func3 = tablafunciones.RetornarFuncionEvaluandoSobrecargaVoid(id3);
+                            Entorno func3 = getEntornoLocal(id3, cimaEnt.AmbitoPadre);
 
                             if (func3 != null)
                             {
-                                if (!func3.getTipo().Equals(Reservada.Void)) //Si el metodo es de tipo VOID no retorna nada, ERROR
+                                int cantParams = 0;
+                                foreach (Simbolo sim in func3.variables)
+                                {
+                                    if (sim.TipoObjeto.Equals(Reservada.parametro))
+                                    {
+                                        cantParams++;
+                                    }
+                                }
+
+                                if(cantParams == 0)
                                 {
                                     nivelActual++; //Aumentamos el nivel actual ya que accedemos a otro metodo
-                                    TablaSimbolos metodo4 = new TablaSimbolos(nivelActual, Reservada.Metodo, true, false, true);
+                                    TablaSimbolos metodo4 = new TablaSimbolos(nivelActual, Reservada.Funcion, true, false);
                                     pilaSimbolos.Push(metodo4);
-                                    cima = metodo4; //Estableciendo la tabla de simbolos cima
+                                    pilaEntornos.Push(func3);
+                                    cimaTS = metodo4; //Estableciendo la tabla de simbolos cima
+                                    cimaEnt = func3;
 
-                                    Retorno reto = EjecutarFuncion(func3);
+                                    Retorno reto = EjecutarFuncion(cimaEnt.nodoBegin);
 
                                     nivelActual--; //Disminuimos el nivel actual ya que salimos del metodo invocado
                                     pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
-                                    cima = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                    pilaEntornos.Pop();
+                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                    cimaEnt = pilaEntornos.Peek();
 
                                     return reto;// ORIGINALMENTE DEVOLVER ESTO PERRO
-                                    //return new Retorno(Reservada.Cadena, nameUsuario, getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0]));
                                 }
                                 else
                                 {
-                                    Debug.WriteLine("Error Semantico-->Funcion no retorna valor linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]);
-                                    lstError.Add(new Error(Reservada.ErrorSemantico, "Funcion no retorna valor", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                    Console.WriteLine("Error Semantico-->Parametros incorrectos linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                    lstError.Add(new Error(Reservada.ErrorSemantico, "Parametros incorrectos", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
                                 }
                             }
                             else
                             {
-                                Debug.WriteLine("Error Semantico-->Funcion no existente linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]);
+                                Debug.WriteLine("Error Semantico-->Funcion no existente linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
                                 lstError.Add(new Error(Reservada.ErrorSemantico, "Funcion no existente", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
                             }
-                            break;*/
-                            return null; //BORRAR ESTHO!!!
+                            break;
 
                         case "(": //| parentA + CONDICION + parentC
 
@@ -1196,7 +1667,56 @@ namespace _OLC2_Proyecto2.Arbol
                 case 4:
                     //| id + parentA + ASIGNAR_PARAMETRO + parentC // Invocacion funcion con parametros
                     //| id + corchA + CONDICION + corchC // Obteniendo valor de un arreglo, condicion debe ser entero para acceder a esa posicion del arreglo
+                    switch (Nodo.ChildNodes[1].Term.Name)
+                    {
+                        case "(": // id + parentA + ASIGNAR_PARAMETRO + parentC // Invocacion funcion con parametros
+                            //PRIMERO OBTENGO LA CANTIDAD DE VALORES EN MIS PARAMETROS ACEPTADOS POR EL ARREGLO
+                            arreglo = new List<Celda>(); //Este arreglo es para almacenar los parametros del metodo que se invoco
+                            ValidarParametrosMetodo(Nodo.ChildNodes[2]); // Mandamos los parametros
+                                                                         //AHORA BUSCO LA FUNCION EN BASE AL NOMBRE Y A MI ARREGLO DE PARAMETROS
+                            String id4 = Nodo.ChildNodes[0].Token.Value.ToString();
 
+                            //Funciones func3 = tablafunciones.RetornarFuncion(id3);
+                            Entorno func3 = getEntornoLocal(id4, cimaEnt.AmbitoPadre);
+
+                            if (func3 != null)
+                            {
+                                func3 = EvaluarEnvioParametros(func3, arreglo);
+
+                                if (func3 != null)
+                                {
+                                    nivelActual++; //Aumentamos el nivel actual ya que accedemos a otro metodo
+                                    TablaSimbolos metodo4 = new TablaSimbolos(nivelActual, Reservada.Funcion, true, false);
+                                    pilaSimbolos.Push(metodo4);
+                                    pilaEntornos.Push(func3);
+                                    cimaTS = metodo4; //Estableciendo la tabla de simbolos cima
+                                    cimaEnt = func3;
+
+                                    Retorno reto = EjecutarFuncion(cimaEnt.nodoBegin);
+
+                                    ResetParametros(cimaEnt);
+
+                                    nivelActual--; //Disminuimos el nivel actual ya que salimos del metodo invocado
+                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                    pilaEntornos.Pop();
+                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                    cimaEnt = pilaEntornos.Peek();
+
+                                    return reto;// ORIGINALMENTE DEVOLVER ESTO PERRO
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Error Semantico-->Parametros de funcion no coinciden (2) linea:" + getLinea(Nodo.ChildNodes[1]) + " columna:" + getColumna(Nodo.ChildNodes[1]));
+                                    lstError.Add(new Error(Reservada.ErrorSemantico, "Parametros de funcion no coinciden (2)", getLinea(Nodo.ChildNodes[1]), getColumna(Nodo.ChildNodes[1])));
+                                }
+                            }
+                            else
+                            {
+                                Debug.WriteLine("Error Semantico-->Funcion no existente linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                lstError.Add(new Error(Reservada.ErrorSemantico, "Funcion no existente", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                            }
+                            break;
+                    }
                     break;
 
                 default:
@@ -1205,7 +1725,18 @@ namespace _OLC2_Proyecto2.Arbol
             }
             return null;
         }
-        
+
+        private Retorno EjecutarFuncion(ParseTreeNode cuerpo)
+        {
+            RetornoAc reta = Sentencias(cuerpo);
+
+            if (reta.Retorna)
+            {
+                return new Retorno(reta.Tipo, reta.Valor, reta.Linea, reta.Columna);
+            }
+            return null;
+        }
+
         private Simbolo RetornarSimbolo(String nombre)
         {
             if (cimaEnt.variables.Count != 0)
@@ -1218,7 +1749,7 @@ namespace _OLC2_Proyecto2.Arbol
                     }
                 }
             }
-            
+
             return RetornarSimboloAST(nombre, entorno);
         }
 
@@ -1233,13 +1764,16 @@ namespace _OLC2_Proyecto2.Arbol
                 {
                     if (e.entornos != null)
                     {
-                        foreach(Entorno eAux in e.entornos)
+                        foreach (Entorno eAux in e.entornos)
                         {
-                            Simbolo sim = RetornarSimboloAST(nombre, eAux.entornos);
-                            if (sim != null)
+                            if (eAux.Activo)
                             {
-                                return sim;
-                            }
+                                Simbolo sim = RetornarSimboloAST(nombre, eAux.entornos);
+                                if (sim != null)
+                                {
+                                    return sim;
+                                }
+                            }                            
                         }
                     }
 
@@ -1247,7 +1781,7 @@ namespace _OLC2_Proyecto2.Arbol
                     {
                         foreach (Simbolo sim in e.variables)
                         {
-                            if (sim.Valor.Equals(nombre))
+                            if (sim.Nombre.Equals(nombre))
                             {
                                 return sim;
                             }
@@ -1393,13 +1927,31 @@ namespace _OLC2_Proyecto2.Arbol
 
         private string getLinea(ParseTreeNode Nodo)
         {
-            return (Nodo.Token.Location.Line + 1) + "";
+            try
+            {
+                return (Nodo.Token.Location.Line + 1) + "";
+            }
+            catch(Exception e)
+            {
+                return "fail";
+            }
         }
 
         private string getColumna(ParseTreeNode Nodo)
         {
-            return (Nodo.Token.Location.Column + 1) + "";
+            try
+            {
+                return (Nodo.Token.Location.Column + 1) + "";
+            }
+            catch(Exception e)
+            {
+                return "fail";
+            }
         }
 
+        public List<Error> getErroresSemanticos()
+        {
+            return lstError;
+        }
     }
 }

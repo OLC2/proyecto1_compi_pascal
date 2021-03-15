@@ -16,3 +16,6 @@ C:\Users\Alexander\Documents\OLC2\[OLC2]Proyecto2\[OLC2]Proyecto2\obj\Debug\netc
 C:\Users\Alexander\Documents\OLC2\[OLC2]Proyecto2\[OLC2]Proyecto2\obj\Debug\netcoreapp3.1\[OLC2]Proyecto2.pdb
 C:\Users\Alexander\Documents\OLC2\[OLC2]Proyecto2\[OLC2]Proyecto2\obj\Debug\netcoreapp3.1\[OLC2]Proyecto2.genruntimeconfig.cache
 C:\Users\Alexander\Documents\OLC2\[OLC2]Proyecto2\[OLC2]Proyecto2\bin\Debug\netcoreapp3.1\ScintillaNET.dll
+C:\Users\Alexander\Documents\OLC2\[OLC2]Proyecto2\[OLC2]Proyecto2\bin\Debug\netcoreapp3.1\BouncyCastle.Crypto.dll
+C:\Users\Alexander\Documents\OLC2\[OLC2]Proyecto2\[OLC2]Proyecto2\bin\Debug\netcoreapp3.1\itextsharp.dll
+C:\Users\Alexander\Documents\OLC2\[OLC2]Proyecto2\[OLC2]Proyecto2\obj\Debug\netcoreapp3.1\_OLC2_Proyecto2.Properties.Resources.resources

@@ -7,12 +7,18 @@ using Irony.Parsing;
 using System.Threading.Tasks;
 using _OLC2_Proyecto2;
 using System.Diagnostics;
+using _OLC2_Proyecto2.Ejecucion;
+using System.Windows.Forms;
+using System.IO;
+using System.Threading;
 
 namespace _OLC2_Proyecto2.Arbol
 {
     class Analisis : Grammar
     {
         public static List<TokenError> lista_errores = new List<TokenError>();
+        public static List<Error> lstErrorS1 = new List<Error>();
+        public static List<Error> lstErrorS2 = new List<Error>();
 
         //Para analizar
         public static ParseTree arbol = null;
@@ -26,6 +32,7 @@ namespace _OLC2_Proyecto2.Arbol
         public Boolean esCadenaValida(string cadena)
         {
             raiz = null;
+            arbol = null;
 
             Gramatica gramatica = new Gramatica();
             LanguageData language = new LanguageData(gramatica);
@@ -92,11 +99,42 @@ namespace _OLC2_Proyecto2.Arbol
                 Form1.Consola.AppendText("Analizando entornos \n");
                 Ejecucion ejecucion = new Ejecucion(entorno);
                 ejecucion.Procedure();
+                lstErrorS1 = ast.getErroresSemanticos();
+                lstErrorS2 = ejecucion.getErroresSemanticos();
+                ImprimirErrores();
             }
             else
             {
                 Form1.Consola.AppendText("Error -> Arbol de entornos nulo. \n");
             }
         }
+
+        private void ImprimirErrores()
+        {
+            Form1.Consola.AppendText("================== ERRORES SEMANTICOS STRUCTS ==================" + "\n");
+            Form1.Consola.AppendText("Linea" + "\t" + "Columna" + "\t" + "Tipo" + "\t\t" + "Descripcion" + "\n");
+            foreach (Error error in lstErrorS1)
+            {
+                Form1.Consola.AppendText(error.Linea + "\t" + error.Columna + "\t" + error.Tipo + "\t" + error.Descripcion + "\n");
+            }
+            Form1.Consola.AppendText("================== ERRORES SEMANTICOS EXEC ==================" + "\n");
+            Form1.Consola.AppendText("Linea" + "\t" + "Columna" + "\t" + "Tipo" + "\t\t" + "Descripcion" + "\n");
+            foreach (Error error in lstErrorS2)
+            {
+                Form1.Consola.AppendText(error.Linea + "\t" + error.Columna + "\t" + error.Tipo + "\t" + error.Descripcion + "\n");
+            }
+            Form1.Consola.AppendText("** Finalizo errores **" + "\n");
+        }
+
+        public ParseTreeNode getArbol ()
+        {
+            return raiz;
+        }
+
+        public List<TokenError> getErrores()
+        {
+            return lista_errores;
+        }
+
     }
 }

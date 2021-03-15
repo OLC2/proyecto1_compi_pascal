@@ -37,7 +37,7 @@ namespace _OLC2_Proyecto2.Ejecucion
 
             //isRetornoG = false;
 
-            TablaSimbolos varg = new TablaSimbolos(0, Reservada.varGlobal, false, false, false);
+            TablaSimbolos varg = new TablaSimbolos(0, Reservada.variable, false, false);
             pilaSimbolos.Push(varg);
             cimaG = varg;
             Console.WriteLine("ejecutando... Program Init");
@@ -139,7 +139,7 @@ namespace _OLC2_Proyecto2.Ejecucion
                     Console.WriteLine("** Accion type no funcional");
                     break;
                 case "var": //ToTerm("var") + LSTVARS
-                    LstVars(Reservada.var, Nodo.ChildNodes[1]);
+                    LstVars(Reservada.variable, Nodo.ChildNodes[1]);
                     break;
                 case "const":
                     Console.WriteLine("** Accion const no funcional");

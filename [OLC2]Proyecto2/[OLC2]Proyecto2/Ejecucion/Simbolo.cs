@@ -6,11 +6,11 @@ namespace _OLC2_Proyecto2.Ejecucion
 {
     class Simbolo
     {
-        public String Ambito;
+        public String Ambito; //En caso de ser parametros (Por referencia (Cuando es referencia en el VALOR va el id de la variable referenciada) | Por valor), en caso de variables (Por valor)
         public String Nombre;
         public String Valor; //PARA UN ARREGLO EL VALOR SERAN LAS DIMENSIONES
         public String Tipo;
-        public String TipoObjeto; //VARIABLE || ARREGLO
+        public String TipoObjeto; //PARAMETRO | VARIABLE | CONSTANTE | ARREGLO
         public String Linea;
         public String Columna;
         public Boolean Activo;

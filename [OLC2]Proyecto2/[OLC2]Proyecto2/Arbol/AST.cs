@@ -13,6 +13,8 @@ namespace _OLC2_Proyecto2.Arbol
     {
         private List<Entorno> entornos;
 
+        public static List<Error> lstErrorS = new List<Error>();
+
         //private Entorno ent;
 
         private string ambito = "raiz";
@@ -32,8 +34,11 @@ namespace _OLC2_Proyecto2.Arbol
                     case "S":
                         //S.Rule = ToTerm("program") + id + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + punto
                         Entorno ent = new Entorno(Nodo, ambito);
+                        ent.IsRetorno = false;
+                        ent.TipoDatoRetorno = Reservada.Cadena;
                         ent.CrearArbol();
                         entornos.Add(ent);
+                        lstErrorS = ent.getErroresSemanticos();
                         break;
                     default:
                         Form1.Consola.AppendText("Error AST-->Nodo " + Nodo.Term.Name + " no existente/detectado"+"\n");
@@ -41,6 +46,11 @@ namespace _OLC2_Proyecto2.Arbol
                 }
             }
             return entornos;
+        }
+
+        public List<Error> getErroresSemanticos()
+        {
+            return lstErrorS;
         }
 
     }

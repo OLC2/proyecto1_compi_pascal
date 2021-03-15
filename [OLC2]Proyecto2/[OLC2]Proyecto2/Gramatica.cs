@@ -48,11 +48,10 @@ namespace _OLC2_Proyecto2
             NonTerminal ASIGNAR_PARAMETRO = new NonTerminal("ASIGNAR_PARAMETRO");
             NonTerminal SENTENCIAS = new NonTerminal("SENTENCIAS");
             NonTerminal SENTENCIA = new NonTerminal("SENTENCIA");
-            NonTerminal IFF = new NonTerminal("IFF");
-            NonTerminal ELSEE = new NonTerminal("ELSEE");
-            NonTerminal WHILEE = new NonTerminal("WHILEE");
-            NonTerminal DOWHILEE = new NonTerminal("DOWHILEE");
-            NonTerminal PRINT = new NonTerminal("PRINT");
+            NonTerminal IF = new NonTerminal("IF");
+            NonTerminal ELSEIF = new NonTerminal("ELSEIF");
+            NonTerminal FINIF = new NonTerminal("FINIF");
+            NonTerminal LISTIF = new NonTerminal("LISTIF");
             NonTerminal LSTID = new NonTerminal("LSTID");
             NonTerminal IDPARAM = new NonTerminal("IDPARAM");
             NonTerminal OPERAFOR = new NonTerminal("OPERAFOR");
@@ -88,8 +87,8 @@ namespace _OLC2_Proyecto2
             NonGrammarTerminals.Add(comentarioMulti2);
 
             //GRAMATICA
-            S.ErrorRule = SyntaxError + puntocoma;
-            S.ErrorRule = SyntaxError + punto;
+            //S.ErrorRule = SyntaxError + puntocoma;
+            //S.ErrorRule = SyntaxError + punto;
             S.Rule = ToTerm("program") + id + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + punto
                     ;
 
@@ -117,7 +116,7 @@ namespace _OLC2_Proyecto2
              * Los arreglos pueden ser de cualquier tipo de dato válido (Incluso arreglos o types) y son dinámicos, además poseen la siguiente estructura:
              * type array-id = array[index-type] of element-type
              */
-            VARYTYPE.ErrorRule = SyntaxError + puntocoma;
+            //VARYTYPE.ErrorRule = SyntaxError + puntocoma;
             VARYTYPE.Rule = ToTerm("type") + LSTVARS //ToTerm("type") + LSTVARS + ToTerm("end") + puntocoma
                         | ToTerm("var") + LSTVARS
                         | ToTerm("const") + id + ToTerm("=") + CONDICION + puntocoma //Ex: const id = constant_value;
@@ -128,7 +127,7 @@ namespace _OLC2_Proyecto2
                         | VARS
                         ;
 
-            VARS.ErrorRule = SyntaxError + puntocoma;
+            //VARS.ErrorRule = SyntaxError + puntocoma;
             VARS.Rule = LSTID + dospuntos + TIPODATO + puntocoma //Var ... All variables must be declared before we use them in Pascal program
                         | LSTID + dospuntos + TIPODATO + ToTerm("=") + CONDICION + puntocoma //Var
                         | LSTID + ToTerm("=") + TIPODATO + puntocoma //Type
@@ -156,12 +155,12 @@ namespace _OLC2_Proyecto2
             /*
              * Void, es solo cuando las funciones retornan un null
              */
-            FUNCIONES.ErrorRule = SyntaxError + puntocoma;
+            //FUNCIONES.ErrorRule = SyntaxError + puntocoma;
             FUNCIONES.Rule = ToTerm("function") + id + parentA + PARAMETROS + parentC + dospuntos + TIPODATO + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                             | ToTerm("function") + id + dospuntos + TIPODATO + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                             ;
 
-            PROCEDIMIENTO.ErrorRule = SyntaxError + puntocoma;
+            //PROCEDIMIENTO.ErrorRule = SyntaxError + puntocoma;
             PROCEDIMIENTO.Rule = ToTerm("procedure") + id + parentA + PARAMETROS + parentC + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                                 | ToTerm("procedure") + id + puntocoma + ESTRUCTURA + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                         ;
@@ -169,25 +168,43 @@ namespace _OLC2_Proyecto2
             SENTENCIAS.Rule = SENTENCIAS + SENTENCIA
                             | SENTENCIA;
 
-            SENTENCIA.ErrorRule = SyntaxError + puntocoma;
+            //SENTENCIA.ErrorRule = SyntaxError + puntocoma;
             SENTENCIA.Rule = ToTerm("write") + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
                             | ToTerm("writeln") + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
                             | ToTerm("graficar_ts") + parentA + parentC + puntocoma
-                            | ToTerm("exit") + parentA + parentC + puntocoma
-                            | ToTerm("exit") + parentA + CONDICION + parentC + puntocoma
-                            | ToTerm("if") + CONDICION + ToTerm("then") + SENTENCIAS //FALTAN LOS ELSE IF!!!!!!
-                            | ToTerm("if") + CONDICION + ToTerm("then") + SENTENCIAS + ToTerm("else") + SENTENCIAS  //FALTAN LOS ELSE IF!!!!!!
+                            | ToTerm("exit") + parentA + parentC + puntocoma //Retorna el valor por defecto del tipo de dato de retorno de la funcion
+                            | ToTerm("exit") + parentA + CONDICION + parentC + puntocoma //Retorna el valor de condicion 
+                            | ToTerm("continue") + puntocoma
+                            | ToTerm("break") + puntocoma
+                            | IF + puntocoma
                             | ToTerm("case") + CONDICION + ToTerm("of") + LSTCASE + ToTerm("else") + SENTENCIAS + ToTerm("end") + puntocoma //Este usa el Break
                             | ToTerm("case") + CONDICION + ToTerm("of") + LSTCASE + ToTerm("end") + puntocoma //Este usa el Break
                             | ToTerm("while") + CONDICION + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                             | ToTerm("repeat") + SENTENCIAS + ToTerm("until") + CONDICION + puntocoma
-                            //| ToTerm("for") + id + ToTerm(":=") + TERMINALES + ToTerm("to") + TERMINALES + ToTerm("do") + SENTENCIAS //Preguntar si se acepta esta forma???
                             | ToTerm("for") + id + ToTerm(":=") + TERMINALES + ToTerm("to") + TERMINALES + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                             | id + parentA + parentC + puntocoma
                             | id + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
                             | id + corchA + ASIGNAR_PARAMETRO + corchC + ToTerm(":=") + CONDICION + puntocoma
-                            | id + ToTerm(":=") + CONDICION + puntocoma
+                            | id + ToTerm(":=") + CONDICION + puntocoma //Si id es igual al nombre de la funcion retorna lo que tiene en condicion
                             ;
+
+            //IF ELSEIF ELSE
+            //IF.ErrorRule = SyntaxError + "}";
+            IF.Rule = ToTerm("if") + CONDICION + ToTerm("then") + ToTerm("begin") + LISTIF  + ELSEIF
+                    ;
+
+            ELSEIF.Rule = ToTerm("end") + ToTerm("else") + IF
+                    | ToTerm("end") + ToTerm("else") + ToTerm("begin")  + LISTIF + ToTerm("end")
+                    | Empty
+                    ;
+
+            FINIF.Rule = IF
+                    |LISTIF + ToTerm("end")
+                    ;
+
+            LISTIF.Rule = LISTIF + SENTENCIAS
+                | SENTENCIAS
+                | Empty;
 
             ASIGNAR_PARAMETRO.Rule = ASIGNAR_PARAMETRO + coma + CONDICION
                                     | CONDICION
@@ -289,7 +306,7 @@ namespace _OLC2_Proyecto2
                             | ToTerm("Integer")
                             | ToTerm("Real")
                             | ToTerm("Boolean")
-                            | id
+                            //| id
                             ;
 
 

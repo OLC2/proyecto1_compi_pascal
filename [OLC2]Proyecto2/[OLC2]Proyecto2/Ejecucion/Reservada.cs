@@ -6,14 +6,18 @@ namespace _OLC2_Proyecto2.Ejecucion
 {
     class Reservada
     {
-        public static string varLocal = "VariableLocal";
-        public static string varGlobal = "VariableGobal";
+        //public static string varLocal = "VariableLocal";
+        //public static string varGlobal = "VariableGobal";
 
-        public static string arregloLocal = "ArregloLocal";
-        public static string arregloGlobal = "ArregloGlobal";
+        //public static string arregloLocal = "ArregloLocal";
+        //public static string arregloGlobal = "ArregloGlobal";
+
+        public static string byVal = "Val";
+        public static string byRef = "Ref";
 
         //TIPO DE OBJETO
-        public static string var = "Variable";
+        public static string variable = "Variable";
+        public static string parametro = "Parametro";
         public static string typee = "Type";
         public static string constt = "Constante";
         public static string objeto = "Object";
@@ -25,8 +29,7 @@ namespace _OLC2_Proyecto2.Ejecucion
         
         public static string Whilee = "While";
         public static string Iff = "If";
-        public static string DoWhile = "DoWhile";
-        public static string Doo = "Do";
+        public static string Repeat = "Repeat";
         public static string Forr = "For";
         public static string Switchh = "Switch";
 

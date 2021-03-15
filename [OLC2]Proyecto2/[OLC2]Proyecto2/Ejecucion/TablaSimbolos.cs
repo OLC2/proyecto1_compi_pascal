@@ -9,18 +9,16 @@ namespace _OLC2_Proyecto2.Ejecucion
     {
         public int Nivel;
         public String Tipo;
-        public Boolean RetornaVal;
-        public Boolean Detener;
         public Boolean Retorna;
+        public Boolean Detener;
         public List<Simbolo> ts = new List<Simbolo>();
 
-        public TablaSimbolos(int Nivel, String Tipo, Boolean RetornaVal, Boolean Detener, Boolean Retorna)
+        public TablaSimbolos(int Nivel, String Tipo, Boolean Retorna, Boolean Detener)
         {
             this.Nivel = Nivel;
             this.Tipo = Tipo;
-            this.RetornaVal = RetornaVal;
-            this.Detener = Detener;
             this.Retorna = Retorna;
+            this.Detener = Detener;
         }
 
         public void addSimbolo(string ambito, string nombre, string valor, string tipo, string tipoobjeto, string linea, string columna, Boolean visibilidad, List<Celda> arreglo)

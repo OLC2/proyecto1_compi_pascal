@@ -10,7 +10,6 @@ namespace _OLC2_Proyecto2.Ejecucion
         public String Valor;
         public String Linea;
         public String Columna;
-        public Boolean RetornaVal;
         public Boolean Detener;
         public Boolean Retorna;
 
@@ -20,7 +19,6 @@ namespace _OLC2_Proyecto2.Ejecucion
             this.Valor = Valor;
             this.Linea = Linea;
             this.Columna = Columna;
-            this.RetornaVal = false;
             this.Detener = false;
             this.Retorna = false;
         }
