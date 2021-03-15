@@ -176,7 +176,9 @@ namespace _OLC2_Proyecto2
                             | ToTerm("exit") + parentA + CONDICION + parentC + puntocoma //Retorna el valor de condicion 
                             | ToTerm("continue") + puntocoma
                             | ToTerm("break") + puntocoma
-                            | IF + puntocoma
+                            | ToTerm("if") + CONDICION + ToTerm("then") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma //if
+                            | ToTerm("if") + CONDICION + ToTerm("then") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + ToTerm("else") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma //if-else
+                            //| IF + puntocoma
                             | ToTerm("case") + CONDICION + ToTerm("of") + LSTCASE + ToTerm("else") + SENTENCIAS + ToTerm("end") + puntocoma //Este usa el Break
                             | ToTerm("case") + CONDICION + ToTerm("of") + LSTCASE + ToTerm("end") + puntocoma //Este usa el Break
                             | ToTerm("while") + CONDICION + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma

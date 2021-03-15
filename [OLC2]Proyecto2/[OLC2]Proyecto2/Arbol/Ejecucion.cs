@@ -73,6 +73,8 @@ namespace _OLC2_Proyecto2.Arbol
                         SENTENCIA.Rule = ToTerm("write") + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
                             | ToTerm("writeln") + parentA + ASIGNAR_PARAMETRO + parentC + puntocoma
                             | ToTerm("while") + CONDICION + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                            | ToTerm("if") + CONDICION + ToTerm("then") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                            | ToTerm("if") + CONDICION + ToTerm("then") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + ToTerm("else") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                             | ToTerm("for") + id + ToTerm(":=") + TERMINALES + ToTerm("to") + TERMINALES + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                             | ToTerm("continue") + puntocoma
                             | ToTerm("break") + puntocoma
@@ -420,9 +422,59 @@ namespace _OLC2_Proyecto2.Arbol
                             break;
                         case 7:
                             //ToTerm("while") + CONDICION + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                            //ToTerm("if") + CONDICION + ToTerm("then") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                             #region
-                            switch(Nodo.ChildNodes[0].Term.Name)
+                            switch (Nodo.ChildNodes[0].Term.Name)
                             {
+                                case "if":
+                                    #region
+                                    Retorno cond8 = Condicion(Nodo.ChildNodes[1]);
+
+                                    if (cond8 != null)
+                                    {
+                                        if (cond8.Tipo.Equals(Reservada.Booleano)) // Si la condicion es booleana
+                                        {
+                                            if (cond8.Valor.Equals("True"))
+                                            {
+                                                TablaSimbolos iff = new TablaSimbolos(nivelActual, Reservada.Iff, cimaEnt.IsRetorno, cimaTS.Detener);
+                                                pilaSimbolos.Push(iff);
+                                                cimaTS = iff; //Estableciendo la tabla de simbolos cima
+                                                            //nivelActual = 1; //Estableciendo el nivel actual <<-- No en este caso de If
+
+                                                RetornoAc ret1 = Sentencias(Nodo.ChildNodes[4]);
+
+                                                if (ret1.Retorna && cimaEnt.IsRetorno)
+                                                {
+                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                    return ret1;
+                                                }
+                                                else if (ret1.Detener && cimaTS.Detener)
+                                                {
+                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                    return ret1;
+                                                }
+
+                                                pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                return new RetornoAc("-", "-", "0", "0");
+                                            }
+                                            return new RetornoAc("-", "-", "0", "0");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Error Semantico-->Valor de condicion invalida linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Valor de condicion invalida", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Error Semantico-->Condicion invalida linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Condicion invalida", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                    }
+                                    #endregion
+                                    break;
                                 case "while":
                                     #region
                                     Retorno cond7 = Condicion(Nodo.ChildNodes[1]);
@@ -491,88 +543,172 @@ namespace _OLC2_Proyecto2.Arbol
                             break;
                         case 11:
                             //ToTerm("for") + id + ToTerm(":=") + TERMINALES + ToTerm("to") + TERMINALES + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                            //ToTerm("if") + CONDICION + ToTerm("then") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + ToTerm("else") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
                             #region
-                            String id15 = Nodo.ChildNodes[1].Token.Value.ToString();
-                            Simbolo var15 = RetornarSimbolo(id15);
-
-                            if (var15 != null) //Si mi asignacion de variable es distinta de null
+                            switch (Nodo.ChildNodes[0].Term.Name)
                             {
-                                Retorno ret15 = Terminales(Nodo.ChildNodes[3]);
-                                Retorno condicional = Terminales(Nodo.ChildNodes[5]);
+                                case "for":
+                                    //ToTerm("for") + id + ToTerm(":=") + TERMINALES + ToTerm("to") + TERMINALES + ToTerm("do") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                                    #region
+                                    String id15 = Nodo.ChildNodes[1].Token.Value.ToString();
+                                    Simbolo var15 = RetornarSimbolo(id15);
 
-                                if (ret15.Tipo.Equals(var15.Tipo) && (ret15.Tipo.Equals(Reservada.Real) || ret15.Tipo.Equals(Reservada.Entero))) //Si son del mismo tipo se pueden asignar (variable con expresion)
-                                {
-                                    var15.Valor = ret15.Valor;  // Asignamos el nuevo valor a la variable
-
-                                    if (condicional.Tipo.Equals(Reservada.Entero) || condicional.Tipo.Equals(Reservada.Real))
+                                    if (var15 != null) //Si mi asignacion de variable es distinta de null
                                     {
-                                        if (!condicionFor(var15, condicional)) //Si la condicion es True se ejecutan las sentencias
-                                        {
-                                            int contador = 0;
+                                        Retorno ret15 = Terminales(Nodo.ChildNodes[3]);
+                                        Retorno condicional = Terminales(Nodo.ChildNodes[5]);
 
-                                            while (true)
+                                        if (ret15.Tipo.Equals(var15.Tipo) && (ret15.Tipo.Equals(Reservada.Real) || ret15.Tipo.Equals(Reservada.Entero))) //Si son del mismo tipo se pueden asignar (variable con expresion)
+                                        {
+                                            var15.Valor = ret15.Valor;  // Asignamos el nuevo valor a la variable
+
+                                            if (condicional.Tipo.Equals(Reservada.Entero) || condicional.Tipo.Equals(Reservada.Real))
                                             {
-                                                TablaSimbolos forr = new TablaSimbolos(nivelActual, Reservada.Forr, cimaEnt.IsRetorno, true);
-                                                pilaSimbolos.Push(forr);
-                                                cimaTS = forr; //Estableciendo la tabla de simbolos cima
-                                                
-                                                RetornoAc ret1 = Sentencias(Nodo.ChildNodes[8]); //Ejecuta sentencias
-                                                if (ret1.Retorna)
+                                                if (!condicionFor(var15, condicional)) //Si la condicion es True se ejecutan las sentencias
+                                                {
+                                                    int contador = 0;
+
+                                                    while (true)
+                                                    {
+                                                        TablaSimbolos forr = new TablaSimbolos(nivelActual, Reservada.Forr, cimaEnt.IsRetorno, true);
+                                                        pilaSimbolos.Push(forr);
+                                                        cimaTS = forr; //Estableciendo la tabla de simbolos cima
+
+                                                        RetornoAc ret1 = Sentencias(Nodo.ChildNodes[8]); //Ejecuta sentencias
+                                                        if (ret1.Retorna)
+                                                        {
+                                                            pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                            cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                            return ret1;
+                                                        }
+                                                        else if (ret1.Detener)
+                                                        {
+                                                            pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                            cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                                                          //return ret1;
+                                                            break;
+                                                        }
+
+                                                        Simbolo inc = IncrementoFor(var15); //Ejecuta operacion incrementa/decremento
+
+                                                        if (inc == null)
+                                                        {
+                                                            //Si entra aca significa que trono
+                                                            return new RetornoAc("-", "-", "0", "0");
+                                                        }
+                                                        var15 = inc;
+
+                                                        if (condicionFor(var15, condicional) || (contador == 50)) // Si la condicion es falsa // Maximo de iteraciones del For es 50
+                                                        {
+                                                            pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                            cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                            break;
+                                                        }
+
+                                                        contador++;
+
+                                                        pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                        cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                    }
+                                                    return new RetornoAc("-", "-", "0", "0");
+                                                }
+                                                return new RetornoAc("-", "-", "0", "0");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("Error Semantico-->Tipo de condicional incorrecta linea:" + getLinea(Nodo.ChildNodes[4]) + " columna:" + getColumna(Nodo.ChildNodes[4]));
+                                                lstError.Add(new Error(Reservada.ErrorSemantico, "Tipo de condicional incorrecta", getLinea(Nodo.ChildNodes[4]), getColumna(Nodo.ChildNodes[4])));
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Error Semantico-->Asignacion no valida, tipo de dato incorrecto linea:" + getLinea(Nodo.ChildNodes[2]) + " columna:" + getColumna(Nodo.ChildNodes[2]));
+                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Asignacion no valida, tipo de dato incorrecto", getLinea(Nodo.ChildNodes[2]), getColumna(Nodo.ChildNodes[2])));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Error Semantico-->Variable no existente linea:" + getLinea(Nodo.ChildNodes[2]) + " columna:" + getColumna(Nodo.ChildNodes[2]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Variable no existente incorrecta", getLinea(Nodo.ChildNodes[2]), getColumna(Nodo.ChildNodes[2])));
+                                    }
+                                    #endregion
+                                    break;
+                                case "if":
+                                    //ToTerm("if") + CONDICION + ToTerm("then") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + ToTerm("else") + ToTerm("begin") + SENTENCIAS + ToTerm("end") + puntocoma
+                                    #region
+                                    Retorno cond11 = Condicion(Nodo.ChildNodes[1]);
+
+                                    if (cond11 != null)
+                                    {
+                                        if (cond11.Tipo.Equals(Reservada.Booleano)) // Si la condicion es booleana
+                                        {
+                                            TablaSimbolos iff = new TablaSimbolos(nivelActual, Reservada.Iff, cimaEnt.IsRetorno, cimaTS.Detener);
+                                            pilaSimbolos.Push(iff);
+                                            cimaTS = iff; //Estableciendo la tabla de simbolos cima
+                                                        //nivelActual = 1; //Estableciendo el nivel actual <<-- No en este caso de If
+
+                                            if (cond11.Valor.Equals("True"))
+                                            {
+                                                RetornoAc ret1 = Sentencias(Nodo.ChildNodes[4]); //Ejecutando sentencias del If
+
+                                                if (ret1.Retorna && cimaEnt.IsRetorno)
                                                 {
                                                     pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
                                                     cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
                                                     return ret1;
                                                 }
-                                                else if (ret1.Detener)
+                                                else if (ret1.Detener && cimaTS.Detener)
                                                 {
                                                     pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
                                                     cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
-                                                    //return ret1;
-                                                    break;
+                                                    return ret1;
                                                 }
-
-                                                Simbolo inc = IncrementoFor(var15); //Ejecuta operacion incrementa/decremento
-
-                                                if(inc == null)
-                                                {
-                                                    //Si entra aca significa que trono
-                                                    return new RetornoAc("-", "-", "0", "0");
-                                                }
-                                                var15 = inc;
-
-                                                if (condicionFor(var15, condicional) || (contador == 50)) // Si la condicion es falsa // Maximo de iteraciones del For es 50
-                                                {
-                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
-                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
-                                                    break;
-                                                }
-
-                                                contador++;
 
                                                 pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
                                                 cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+
+                                                return new RetornoAc("-", "-", "0", "0");
                                             }
-                                            return new RetornoAc("-", "-", "0", "0");
+                                            else
+                                            {
+                                                RetornoAc ret1 = Sentencias(Nodo.ChildNodes[8]); //Ejecutando sentencias del Else
+
+                                                if (ret1.Retorna && cimaEnt.IsRetorno)
+                                                {
+                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                    return ret1;
+                                                }
+                                                else if (ret1.Detener && cimaTS.Detener)
+                                                {
+                                                    pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                    cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+                                                    return ret1;
+                                                }
+
+                                                pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
+                                                cimaTS = pilaSimbolos.Peek(); //Estableciendo la nueva tabla de simbolo cima
+
+                                                return new RetornoAc("-", "-", "0", "0");
+                                            }
                                         }
-                                        return new RetornoAc("-", "-", "0", "0");
+                                        else
+                                        {
+                                            Console.WriteLine("Valor de condicion invalida");
+                                            Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Valor de condicion invalida", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
+                                        }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Error Semantico-->Tipo de condicional incorrecta linea:" + getLinea(Nodo.ChildNodes[4]) + " columna:" + getColumna(Nodo.ChildNodes[4]));
-                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Tipo de condicional incorrecta", getLinea(Nodo.ChildNodes[4]), getColumna(Nodo.ChildNodes[4])));
+                                        Console.WriteLine("Condicion invalida");
+                                        Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[0]) + " columna:" + getColumna(Nodo.ChildNodes[0]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Condicion invalida", getLinea(Nodo.ChildNodes[0]), getColumna(Nodo.ChildNodes[0])));
                                     }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Error Semantico-->Asignacion no valida, tipo de dato incorrecto linea:" + getLinea(Nodo.ChildNodes[2]) + " columna:" + getColumna(Nodo.ChildNodes[2]));
-                                    lstError.Add(new Error(Reservada.ErrorSemantico, "Asignacion no valida, tipo de dato incorrecto", getLinea(Nodo.ChildNodes[2]), getColumna(Nodo.ChildNodes[2])));
-                                }
+                                    #endregion
+                                    break;
                             }
-                            else
-                            {
-                                Console.WriteLine("Error Semantico-->Variable no existente linea:" + getLinea(Nodo.ChildNodes[2]) + " columna:" + getColumna(Nodo.ChildNodes[2]));
-                                lstError.Add(new Error(Reservada.ErrorSemantico, "Variable no existente incorrecta", getLinea(Nodo.ChildNodes[2]), getColumna(Nodo.ChildNodes[2])));
-                            }
+                            
                             #endregion
                             break;
                     }

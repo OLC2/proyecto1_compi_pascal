@@ -286,7 +286,7 @@ namespace _OLC2_Proyecto2.Arbol
             doc.Close();
             writer.Close();
 
-            MessageBox.Show("Genero PDF de errores Lexicos y Sintacticos");
+            MessageBox.Show("Genero PDF de errores.");
         }
 
     }
