@@ -316,15 +316,15 @@ namespace _OLC2_Proyecto2.Arbol
                                         else
                                         {
                                             Console.WriteLine("Valor de condicion invalida");
-                                            Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[5]) + " columna:" + getColumna(Nodo.ChildNodes[5]));
-                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Valor de condicion invalida", getLinea(Nodo.ChildNodes[5]), getColumna(Nodo.ChildNodes[5])));
+                                            Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[4]) + " columna:" + getColumna(Nodo.ChildNodes[4]));
+                                            lstError.Add(new Error(Reservada.ErrorSemantico, "Valor de condicion invalida", getLinea(Nodo.ChildNodes[4]), getColumna(Nodo.ChildNodes[4])));
                                         }
                                     }
                                     else
                                     {
                                         Console.WriteLine("Condicion invalida");
-                                        Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[5]) + " columna:" + getColumna(Nodo.ChildNodes[5]));
-                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Condicion invalida", getLinea(Nodo.ChildNodes[5]), getColumna(Nodo.ChildNodes[5])));
+                                        Console.WriteLine("Error Semantico--> linea:" + getLinea(Nodo.ChildNodes[4]) + " columna:" + getColumna(Nodo.ChildNodes[4]));
+                                        lstError.Add(new Error(Reservada.ErrorSemantico, "Condicion invalida", getLinea(Nodo.ChildNodes[4]), getColumna(Nodo.ChildNodes[4])));
                                     }
                                     #endregion
                                     break;

@@ -67,7 +67,7 @@ namespace _OLC2_Proyecto2
 
         private void button1_Click(object sender, EventArgs e)
         {
-            //Debug.WriteLine("click!!!!!!!!!!!!!");
+            analisis.erroresLexicosSintacticos();
         }
 
         private void btnGraficarArbol_Click(object sender, EventArgs e)
