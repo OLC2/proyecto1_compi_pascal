@@ -1,0 +1,142 @@
+
+//CASO SUPER RARO!
+program Hello;
+
+var var1 : integer;
+procedure ccc(var varxx : integer);
+
+begin
+    var1:=15;
+    writeln ('Hello cccxx: ',varxx);
+    //aaa();
+end;
+
+begin
+var1:=1;
+  writeln ('Hello World : ',var1);
+  ccc(var1);
+  writeln ('Hello ccc2: ',var1);
+end.
+
+
+program Alexander;
+
+var var1 : integer = 100;
+var var2 : integer = 200;
+var var3 : integer = 300;
+
+begin
+	if(var1 > var2) then
+	begin
+	    writeln('PRIMER VALOR CONDICIONAL');
+	    var1 := var1 + 2;
+    end
+	else if (var2 > var3) then
+	begin
+	    writeln('SEGUNDO VALOR CONDICIONAL');
+	    var1 := var1+4;
+    end
+    else if (var1 > var3) then
+	begin
+	    writeln('TERCER VALOR CONDICIONAL');
+	    var1 := var1+6;
+    end
+	else
+	begin
+	    writeln('CUARTO VALOR CONDICIONAL');
+	    var1 := var1+8;
+	end;
+    writeln('VALOR FINAL DE VARIABLE: ',var1);
+end.
+
+
+
+
+program Alexander;
+
+var i : integer = 10;
+var datos : integer = 20;
+var
+   a: integer;
+
+begin
+	writeln('==== Secuencia While ====');
+	while i < datos do
+    begin
+        write('El valor de i: ');
+        writeln(i);
+        i := i + 1;
+        continue;
+        writeln('Esto no deberia imprimir dentro de while');
+    end;
+    writeln('Dato final: ',i);
+
+    writeln('==== Secuencia Repeat ====');
+    i := 6;
+    repeat
+        write('El valor de i: ');
+        writeln(i);
+        i := i - 2;
+        break;
+    until (i = 0);
+    a := 10;
+   (* repeat until loop execution *)
+   repeat
+      writeln('value of a: ', a);
+      a := a + 1;
+   until a = 20;
+
+   writeln('==== For Do ====');
+    for i := 0 to 10 do
+    begin
+        if i = 8 then
+        begin
+            break;
+        end;
+
+        write('El valor de i: ');
+        writeln(i);
+    end;
+end.
+
+
+program Alexander;
+
+var i : integer = 10;
+var datos : integer = 20;
+
+procedure ImprimirValores();
+begin
+    writeln('-----------------------');
+    writeln('El valor de i es: ',i);
+    writeln('El valor de datos es: ',datos);
+    writeln('-----------------------');
+end;
+
+function SumarNumeros(num1, num2 : integer):integer;
+var
+	resp : integer;
+begin
+    resp := num1 + num2;
+    write('El resultado de tu suma es: ');
+    writeln(resp);
+    Exit(resp);
+end;
+
+function getNumber(numx,numy : integer):integer;
+var
+	resp : integer;
+begin
+    resp := num1 + num2;
+    write('El resultado de tu suma es: ');
+    writeln(resp);
+    Exit(resp);
+end;
+
+
+
+begin
+
+
+	
+end.
