@@ -48,6 +48,7 @@ namespace _OLC2_Proyecto2
             this.richTxtEntrada.Size = new System.Drawing.Size(543, 402);
             this.richTxtEntrada.TabIndex = 0;
             this.richTxtEntrada.Text = "";
+            this.richTxtEntrada.WordWrap = false;
             // 
             // richTxtSalida
             // 

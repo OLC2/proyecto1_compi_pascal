@@ -132,9 +132,11 @@ namespace _OLC2_Proyecto2.Arbol
                                         pilaEntornos.Push(ent4);
                                         cimaTS = proc;          //Estableciendo la tabla de simbolos cima
                                         cimaEnt = ent4;         //Estableciendo entorno actual
+                                        cimaEnt.Activo = true;
 
                                         Sentencias(cimaEnt.nodoBegin);
 
+                                        cimaEnt.Activo = false;
                                         nivelActual--; //Disminuimos el nivel actual ya que salimos del metodo invocado
                                         pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
                                         pilaEntornos.Pop();
@@ -391,11 +393,13 @@ namespace _OLC2_Proyecto2.Arbol
                                             pilaEntornos.Push(ent4);
                                             cimaTS = metodo4;       //Estableciendo la tabla de simbolos cima
                                             cimaEnt = ent4;         //Estableciendo entorno actual
+                                            cimaEnt.Activo = true;
 
                                             Sentencias(cimaEnt.nodoBegin);
 
                                             ResetParametros(cimaEnt);
 
+                                            cimaEnt.Activo = false;
                                             nivelActual--; //Disminuimos el nivel actual ya que salimos del metodo invocado
                                             pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
                                             pilaEntornos.Pop();
@@ -1758,9 +1762,11 @@ namespace _OLC2_Proyecto2.Arbol
                                     pilaEntornos.Push(func3);
                                     cimaTS = metodo4; //Estableciendo la tabla de simbolos cima
                                     cimaEnt = func3;
+                                    cimaEnt.Activo = true;
 
                                     Retorno reto = EjecutarFuncion(cimaEnt.nodoBegin);
 
+                                    cimaEnt.Activo = false;
                                     nivelActual--; //Disminuimos el nivel actual ya que salimos del metodo invocado
                                     pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
                                     pilaEntornos.Pop();
@@ -1827,11 +1833,13 @@ namespace _OLC2_Proyecto2.Arbol
                                     pilaEntornos.Push(func3);
                                     cimaTS = metodo4; //Estableciendo la tabla de simbolos cima
                                     cimaEnt = func3;
+                                    cimaEnt.Activo = true;
 
                                     Retorno reto = EjecutarFuncion(cimaEnt.nodoBegin);
 
                                     ResetParametros(cimaEnt);
 
+                                    cimaEnt.Activo = false;
                                     nivelActual--; //Disminuimos el nivel actual ya que salimos del metodo invocado
                                     pilaSimbolos.Pop(); //Eliminando la tabla de simbolos cima actual
                                     pilaEntornos.Pop();
@@ -1937,7 +1945,7 @@ namespace _OLC2_Proyecto2.Arbol
                 {
                     if (en.Ambito.Equals(ambito))
                     {
-                        en.Activo = true;
+                        //en.Activo = true;
                         return en;
                     }
                 }
